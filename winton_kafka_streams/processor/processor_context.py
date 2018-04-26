@@ -16,14 +16,15 @@ class ProcessorContext(_context.Context):
     values to downstream processors.
 
     """
-    def __init__(self, _task_id, _task, _record_collector, _state_record_collector, _state_stores):
+    def __init__(self, _task_id, _task, _record_collector, _state_stores, _config):
 
-        super().__init__(_state_record_collector, _state_stores)
+        super().__init__(_state_stores)
 
         self.application_id = _task.application_id
         self.task_id = _task_id
         self.task = _task
         self.record_collector = _record_collector
+        self.config = _config
 
     def commit(self):
         """

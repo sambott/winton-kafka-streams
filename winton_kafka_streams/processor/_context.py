@@ -28,10 +28,9 @@ class Context:
 
     """
 
-    def __init__(self, _state_record_collector, _state_stores):
+    def __init__(self, _state_stores):
         self.current_node = None
         self.current_record = None
-        self.state_record_collector = _state_record_collector
         self._state_stores = _state_stores
 
     def send(self, topic, key, obj):

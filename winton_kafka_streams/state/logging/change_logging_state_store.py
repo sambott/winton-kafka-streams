@@ -3,7 +3,7 @@ from typing import TypeVar, Iterator
 from winton_kafka_streams.processor.serialization import Serde
 from ..key_value_state_store import KeyValueStateStore
 from ..state_store import StateStore
-from .store_change_logger import StoreChangeLogger
+from .store_change_logger import StoreChangeLogger, StoreChangeLoggerImpl
 
 KT = TypeVar('KT')  # Key type.
 VT = TypeVar('VT')  # Value type.
@@ -14,12 +14,21 @@ class ChangeLoggingStateStore(StateStore[KT, VT]):
                  inner_state_store: StateStore[KT, VT]) -> None:
         super().__init__(name, key_serde, value_serde, logging_enabled)
         self.inner_state_store = inner_state_store
-        self.change_logger = None
+        self.change_logger: StoreChangeLogger = None
+
+    def _get_change_logger(self, context) -> StoreChangeLogger:
+        return StoreChangeLoggerImpl(self.inner_state_store.name, context)
 
     def initialize(self, context, root):
         self.inner_state_store.initialize(context, root)
-        self.change_logger = StoreChangeLogger(self.inner_state_store.name, context)
-        # TODO rebuild state into inner here
+        self.change_logger = self._get_change_logger(context)
+        for k, v in self.change_logger:
+            deserialized_key = self.deserialize_key(k)
+            inner_kv_store = self.inner_state_store.get_key_value_store()
+            if v == b'':
+                del inner_kv_store[deserialized_key]
+            else:
+                inner_kv_store[deserialized_key] = self.deserialize_value(v)
 
     def get_key_value_store(self) -> KeyValueStateStore[KT, VT]:
         parent = self

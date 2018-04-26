@@ -26,7 +26,7 @@ def test_sinkProcessorProcess():
         mock_task = mock.Mock()
         mock_task.application_id = 'test_id'
         mock_task_id = TaskId('test_group', 0)
-        processor_context = wks_processor.ProcessorContext(mock_task_id, mock_task, None, None, {})
+        processor_context = wks_processor.ProcessorContext(mock_task_id, mock_task, None, {}, None)
         processor_context.record_collector = mock.MagicMock()
 
         sink = wks_processor.SinkProcessor('topic1')

@@ -4,7 +4,6 @@ import queue
 from confluent_kafka import TopicPartition
 from confluent_kafka.cimpl import KafkaException, KafkaError
 
-from winton_kafka_streams.processor.serialization.serdes import BytesSerde
 from ..errors._kafka_error_codes import _get_invalid_producer_epoch_code
 from ._punctuation_queue import PunctuationQueue
 from ._record_collector import RecordCollector
@@ -69,11 +68,9 @@ class StreamTask:
         self.value_serde.configure(self.config, False)
 
         self.record_collector = RecordCollector(self.producer, self.key_serde, self.value_serde)
-        self.state_record_collector = RecordCollector(self.producer, BytesSerde(), BytesSerde())
 
         self.queue = queue.Queue()
-        self.context = ProcessorContext(self.task_id, self, self.record_collector,
-                                        self.state_record_collector, self.state_stores)
+        self.context = ProcessorContext(self.task_id, self, self.record_collector, self.state_stores, self.config)
 
         self.punctuation_queue = PunctuationQueue(self.punctuate)
         # TODO: use the configured timestamp extractor.
